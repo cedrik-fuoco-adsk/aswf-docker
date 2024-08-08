@@ -474,6 +474,7 @@ versions:
       ASWF_USD_VERSION: "24.05"
       ASWF_VFXPLATFORM_VERSION: "2024"
       ASWF_CXX_STANDARD: "17"
+      ASWF_OPENRV_VERSION: "2"
   "2024-clang16":
     parent_versions: ["4", "4-clang16", "2024"]
     major_version: "2024"
@@ -631,6 +632,8 @@ ci-packages:
     - "2022.4"
     - "2023.2"
     - "2024.1"
+  openrv:
+    - "2024.1"
   opensubdiv:
     - "2019.2"
     - "2020.2"
@@ -733,6 +736,8 @@ ci-images:
     - "2023.2"
     - "2024.1"
   oiio:
+    - "2024.1"
+  openrv:
     - "2024.1"
   opencue:
     - "2019.10"
@@ -839,6 +844,7 @@ groups:
         - openexr
         - openvdb
         - ptex
+        - openrv
       vfx2: 
         - opensubdiv
         - osl
@@ -846,6 +852,7 @@ groups:
         - partio
         - materialx
         - usd
+        - openrv
   image:
       common:
         - common
@@ -855,12 +862,14 @@ groups:
       vfx1:
         - opencue
         - openexr
+        - openrv
       vfx2:
         - ocio
         - oiio
         - otio
         - materialx
         - usd
+        - openrv
       vfx3:
         - osl
         - openvdb

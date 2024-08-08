@@ -84,6 +84,11 @@ class Index:
         return self._versions["package_data"].get(package_name, {})
 
     def get_group_from_image(self, image_type: constants.ImageType, image: str):
+        print(self.groups[image_type])
+        print("----")
+        print(self.groups[image_type])
+        print("----")
+        print(self.groups[image_type].items())
         for group, images in self.groups[image_type].items():
             for img in images:
                 if img == image:

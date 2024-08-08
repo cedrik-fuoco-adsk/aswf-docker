@@ -28,6 +28,7 @@ packages:
   - partio
   - osl
   - otio
+  - openrv
 implicit_packages:
   - numpy
   - hdf5

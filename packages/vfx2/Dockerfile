@@ -23,6 +23,7 @@ ARG ASWF_ALEMBIC_VERSION
 ARG ASWF_BLOSC_VERSION
 ARG ASWF_OCIO_VERSION
 ARG ASWF_OIIO_VERSION
+ARG ASWF_OPENRV_VERSION
 ARG ASWF_OPENEXR_VERSION
 ARG ASWF_IMATH_VERSION
 ARG ASWF_OPENSUBDIV_VERSION
@@ -40,6 +41,7 @@ ARG ASWF_USD_VERSION
 FROM ${ASWF_ORG}/ci-package-openvdb:${ASWF_VFXPLATFORM_VERSION}-${ASWF_OPENVDB_VERSION} AS ci-package-openvdb-external
 FROM ${ASWF_ORG}/ci-package-oiio:${ASWF_VFXPLATFORM_VERSION}-${ASWF_OIIO_VERSION} AS ci-package-oiio-external
 FROM ${ASWF_ORG}/ci-package-ocio:${ASWF_VFXPLATFORM_VERSION}-${ASWF_OCIO_VERSION} AS ci-package-ocio-external
+FROM ${ASWF_ORG}/ci-package-openrv:${ASWF_VFXPLATFORM_VERSION}-${ASWF_OPENRV_VERSION} AS ci-package-openrv-external
 
 
 #################### ci-base-builder ####################
@@ -125,6 +127,7 @@ ENV ASWF_OPENEXR_VERSION=${ASWF_OPENEXR_VERSION}
 COPY --from=ci-package-openvdb-external /. /usr/local/
 COPY --from=ci-package-oiio-external /. /usr/local/
 COPY --from=ci-package-ocio-external /. /usr/local/
+COPY --from=ci-package-openrv-external /. /usr/local/
 
 COPY ../scripts/vfx/build_osl.sh \
      /tmp/
@@ -227,6 +230,7 @@ ENV ASWF_PTEX_VERSION=${ASWF_PTEX_VERSION}
 COPY --from=ci-package-openvdb-external /. /usr/local/
 COPY --from=ci-package-oiio-external /. /usr/local/
 COPY --from=ci-package-ocio-external /. /usr/local/
+COPY --from=ci-package-openrv-external /. /usr/local/
 
 COPY ../scripts/vfx/build_usd.sh \
      /tmp/
@@ -350,3 +354,68 @@ LABEL io.aswf.docker.versions.dts="${ASWF_DTS_VERSION}"
 LABEL io.aswf.docker.versions.otio="${ASWF_OTIO_VERSION}"
 
 COPY --from=ci-otio-builder /package/. /
+
+
+#################### ci-openrv-builder ####################
+FROM ci-ocio-builder AS ci-openrv-builder
+
+ARG ASWF_OPENRV_VERSION
+ARG ASWF_CXX_STANDARD
+ARG ASWF_PTEX_VERSION
+
+ENV ASWF_OPENRV_VERSION=${ASWF_OPENRV_VERSION}
+ENV ASWF_CXX_STANDARD=${ASWF_CXX_STANDARD}
+ENV ASWF_PTEX_VERSION=${ASWF_PTEX_VERSION}
+
+
+COPY ../scripts/vfx/build_openrv.sh \
+     /tmp/
+
+COPY scripts/common/install_conanpackages.sh /tmp
+
+# Use conan to install some packages
+COPY <<EOF /usr/local/conanfile.txt
+[generators]
+[imports]
+., * -> .
+[requires]
+ptex/${ASWF_PTEX_VERSION}@${ASWF_PKG_ORG}/${ASWF_CONAN_CHANNEL}
+EOF
+
+RUN --mount=type=cache,target=/opt/conan_home/d \
+    --mount=type=bind,rw,target=/opt/conan_home/.conan,source=packages/conan/settings \
+    /tmp/install_conanpackages.sh /usr/local vfx${ASWF_VFXPLATFORM_VERSION}
+
+RUN --mount=type=cache,target=/tmp/ccache \
+    --mount=type=cache,sharing=private,target=/tmp/downloads \
+    /tmp/before_build.sh && \
+    /tmp/build_openrv.sh && \
+    /tmp/copy_new_files.sh && \
+    ccache --show-stats
+
+
+#################### ci-package-openrv ####################
+FROM scratch AS ci-package-openrv
+
+ARG ASWF_ORG
+ARG CI_COMMON_VERSION
+ARG ASWF_DTS_VERSION
+ARG ASWF_DTS_PREFIX
+ARG ASWF_OPENRV_VERSION
+ARG ASWF_VFXPLATFORM_VERSION
+
+LABEL org.opencontainers.image.name="$ASWF_ORG/ci-package-openrv"
+LABEL org.opencontainers.image.title="OpenRV package built for ASWF Docker images"
+LABEL org.opencontainers.image.description="OpenRV headers and binaries to be installed in ASWF Docker images"
+LABEL org.opencontainers.image.authors="Built by aswf.io CI Working Group"
+LABEL org.opencontainers.image.vendor="AcademySoftwareFoundation"
+LABEL org.opencontainers.image.url="https://github.com/OpenRV/openrv"
+LABEL org.opencontainers.image.source="https://github.com/AcademySoftwareFoundation/aswf-docker/blob/master/packages/Dockerfile"
+LABEL org.opencontainers.image.version="${ASWF_OPENRV_VERSION}"
+LABEL org.opencontainers.image.licenses="BSD-3-Clause"
+LABEL io.aswf.docker.versions.ci-common="${CI_COMMON_VERSION}"
+LABEL io.aswf.docker.versions.vfx-platform="${ASWF_VFXPLATFORM_VERSION}"
+LABEL io.aswf.docker.versions.dts="${ASWF_DTS_VERSION}"
+LABEL io.aswf.docker.versions.openrv="${ASWF_OPENRV_VERSION}"
+
+COPY --from=ci-openrv-builder /package/. /
