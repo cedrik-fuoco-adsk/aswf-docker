@@ -151,7 +151,7 @@ versions:
     package_versions:
       ASWF_DTS_VERSION: "11"
       ASWF_DTS_PREFIX: "gcc-toolset"
-      ASWF_CONAN_VERSION: "1.63.0"
+      ASWF_CONAN_VERSION: "1.64.0"
       ASWF_CONAN_PYTHON_VERSION: "3.11.8"
       ASWF_CUDA_VERSION: "12.3.0"
       ASWF_GLVND_VERSION: "1.7.0"
@@ -777,6 +777,8 @@ ci-images:
     - "2023-clang15.2"
     - "2024-clang16.1"
     - "2024-clang17.1"
+  openrv:
+    - "2024.1"
   openvdb:
     - "2019-clang6.8"
     - "2019-clang7.8"
@@ -865,6 +867,8 @@ groups:
         - osl
         - openvdb
         - vfxall
+      review:
+        - openrv
 
 package_data:
   python:

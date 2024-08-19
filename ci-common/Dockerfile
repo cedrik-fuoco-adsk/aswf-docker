@@ -105,6 +105,11 @@ COPY scripts/common/install_yumpackages.sh \
 
 RUN /tmp/install_yumpackages.sh
 
+COPY scripts/common/install_pippackages.sh \
+    /tmp/
+
+RUN /tmp/install_pippackages.sh
+
 COPY scripts/common/install_opengl.sh \
     /tmp/
 
